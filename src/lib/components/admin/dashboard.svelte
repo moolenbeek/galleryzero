@@ -1,4 +1,5 @@
 <script lang="ts">
+    import * as Card from "$lib/components/ui/card/index.js";
     import { Button } from '$lib/components/ui/button';
     import { enhance } from '$app/forms';
 
@@ -6,7 +7,12 @@
 </script>
 
 <h1>Dashboard Component</h1>
-<p>Hi {data.user.username}</p>
-<form method="post" action="?/logout" use:enhance>
-    <Button type="submit">Log out</Button>
-</form>
+
+<Card.Root>
+    <Card.Content>
+        <p>Hi {data.user.username}</p>
+        <form method="post" action="?/logout" use:enhance>
+            <Button type="submit">Log out</Button>  
+        </form>
+    </Card.Content>
+</Card.Root>
