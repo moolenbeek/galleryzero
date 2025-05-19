@@ -12,7 +12,9 @@
     <Card.Content>
         <p>Hi {data.user.username}</p>
         <form method="post" action="?/logout" use:enhance>
-            <Button type="submit">Log out</Button>  
+            <div class="flex gap-2 pt-4">
+                <Button type="submit">Log out</Button>  
+            </div>
         </form>
     </Card.Content>
 </Card.Root>
