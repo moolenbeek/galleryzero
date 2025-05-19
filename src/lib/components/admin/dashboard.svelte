@@ -1,5 +1,6 @@
 <script lang="ts">
     import * as Card from "$lib/components/ui/card/index.js";
+    import * as Table from "$lib/components/ui/table/index.js";
     import { Button } from '$lib/components/ui/button';
     import { enhance } from '$app/forms';
 
@@ -25,6 +26,20 @@
         <Card.Title>Gallery</Card.Title>
     </Card.Header>
     <Card.Content>
-        <p>Gallery</p>
+        <Table.Root>
+            <Table.Header>
+                <Table.Row>
+                    <Table.Head>Name</Table.Head>
+                    <Table.Head>Description</Table.Head>
+                    <Table.Head>Category</Table.Head>
+                </Table.Row>
+            </Table.Header>
+            <Table.Body>
+                <Table.Row>
+                    <Table.Cell>Name</Table.Cell>
+                    <Table.Cell>Description</Table.Cell>
+                </Table.Row>
+            </Table.Body>
+        </Table.Root>
     </Card.Content>
 </Card.Root>
