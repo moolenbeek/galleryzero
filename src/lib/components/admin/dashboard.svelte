@@ -40,7 +40,6 @@
         <Table.Root>
             <Table.Header>
                 <Table.Row>
-                    <Table.Head>Name</Table.Head>
                     <Table.Head>Description</Table.Head>
                     <Table.Head>Category</Table.Head>
                 </Table.Row>
@@ -48,7 +47,6 @@
             <Table.Body>
                 {#each data.galleryItems as item}
                     <Table.Row>
-                        <Table.Cell>{item.name}</Table.Cell>
                         <Table.Cell>{item.description}</Table.Cell>
                         <Table.Cell>{item.category.name}</Table.Cell>
                     </Table.Row>
