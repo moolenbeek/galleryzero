@@ -1,4 +1,5 @@
 import { pgTable, serial, text, integer, timestamp } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 export const user = pgTable('user', {
 	id: text('id').primaryKey(),
@@ -21,10 +22,17 @@ export const gallery_category = pgTable('gallery_category', {
 
 export const gallery_item = pgTable('gallery_item', {
 	id: serial('id').primaryKey(),
-	categoryId: integer('category_id').references(() => gallery_category.id),
+	categoryId: text('category_id').references(() => gallery_category.id),
 	imageUrl: text('image_url').notNull(),
 	description: text('description').notNull(),
 });
+
+export const galleryItemRelations = relations(gallery_item, ({ one }) => ({
+	category: one(gallery_category, {
+		fields: [gallery_item.categoryId],
+		references: [gallery_category.id]
+	})
+}));
 
 export type Session = typeof session.$inferSelect;
 

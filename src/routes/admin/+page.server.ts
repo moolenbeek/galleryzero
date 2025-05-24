@@ -1,12 +1,23 @@
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import * as auth from '$lib/server/auth';
+import { db } from '$lib/server/db';
 
-export const load: PageServerLoad = async (event) => {
-	if (!event.locals.user) {
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.user) {
 		return redirect(302, '/admin/login');
 	}
-	return { user: event.locals.user };
+
+	const galleryItems = await db.query.gallery_item.findMany({
+		with: {
+			category: true
+		}
+	});
+
+	return {
+		user: locals.user,
+		galleryItems
+	};
 };
 
 export const actions: Actions = {

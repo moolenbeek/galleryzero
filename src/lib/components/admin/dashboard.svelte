@@ -4,7 +4,18 @@
     import { Button } from '$lib/components/ui/button';
     import { enhance } from '$app/forms';
 
-    export let data: { user: { id: string; username: string; role: string } };
+    export let data: { 
+        user: { id: string; username: string; role: string },
+        galleryItems: Array<{
+            id: string;
+            name: string;
+            description: string;
+            category: {
+                id: string;
+                name: string;
+            }
+        }>
+    };
 </script>
 
 <Card.Root>
@@ -35,11 +46,17 @@
                 </Table.Row>
             </Table.Header>
             <Table.Body>
-                <Table.Row>
-                    <Table.Cell>Name</Table.Cell>
-                    <Table.Cell>Description</Table.Cell>
-                </Table.Row>
+                {#each data.galleryItems as item}
+                    <Table.Row>
+                        <Table.Cell>{item.name}</Table.Cell>
+                        <Table.Cell>{item.description}</Table.Cell>
+                        <Table.Cell>{item.category.name}</Table.Cell>
+                    </Table.Row>
+                {/each}
             </Table.Body>
         </Table.Root>
     </Card.Content>
+    <Card.Footer>
+        <Button>Add Image</Button>
+    </Card.Footer>
 </Card.Root>
