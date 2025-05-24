@@ -3,6 +3,7 @@
     import * as Table from "$lib/components/ui/table/index.js";
     import { Button } from '$lib/components/ui/button';
     import { enhance } from '$app/forms';
+    import { Input } from "$lib/components/ui/input";
 
     export let data: { 
         user: { id: string; username: string; role: string },
@@ -16,6 +17,12 @@
             }
         }>
     };
+
+    let searchTerm = '';
+    $: filteredItems = data.galleryItems.filter(item => 
+        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 </script>
 
 <Card.Root>
@@ -37,22 +44,32 @@
         <Card.Title>Gallery</Card.Title>
     </Card.Header>
     <Card.Content>
-        <Table.Root>
-            <Table.Header>
-                <Table.Row>
-                    <Table.Head>Description</Table.Head>
-                    <Table.Head>Category</Table.Head>
-                </Table.Row>
-            </Table.Header>
-            <Table.Body>
-                {#each data.galleryItems as item}
+        <div class="flex items-center py-4">
+            <Input
+                class="max-w-sm"
+                placeholder="Filter items..."
+                type="text"
+                bind:value={searchTerm}
+            />
+        </div>
+        <div class="rounded-md border">
+            <Table.Root>
+                <Table.Header>
                     <Table.Row>
-                        <Table.Cell>{item.description}</Table.Cell>
-                        <Table.Cell>{item.category.name}</Table.Cell>
+                        <Table.Head>Description</Table.Head>
+                        <Table.Head>Category</Table.Head>
                     </Table.Row>
-                {/each}
-            </Table.Body>
-        </Table.Root>
+                </Table.Header>
+                <Table.Body>
+                    {#each filteredItems as item}
+                        <Table.Row>
+                            <Table.Cell>{item.description}</Table.Cell>
+                            <Table.Cell>{item.category.name}</Table.Cell>
+                        </Table.Row>
+                    {/each}
+                </Table.Body>
+            </Table.Root>
+        </div>
     </Card.Content>
     <Card.Footer>
         <Button>Add Image</Button>
