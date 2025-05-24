@@ -4,6 +4,8 @@
     import { Button } from '$lib/components/ui/button';
     import { enhance } from '$app/forms';
     import { Input } from "$lib/components/ui/input";
+    import { Trash2 } from 'lucide-svelte';
+    import * as AlertDialog from "$lib/components/ui/alert-dialog";
 
     export let data: { 
         user: { id: string; username: string; role: string },
@@ -19,10 +21,30 @@
     };
 
     let searchTerm = '';
+    let itemToDelete: string | null = null;
+    
     $: filteredItems = data.galleryItems.filter(item => 
         item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.category.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    async function handleDelete() {
+        if (!itemToDelete) return;
+        
+        const formData = new FormData();
+        formData.append('id', itemToDelete);
+        
+        const response = await fetch('?/deleteItem', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            data.galleryItems = data.galleryItems.filter(item => item.id !== itemToDelete);
+        }
+        
+        itemToDelete = null;
+    }
 </script>
 
 <Card.Root>
@@ -58,6 +80,7 @@
                     <Table.Row>
                         <Table.Head>Description</Table.Head>
                         <Table.Head>Category</Table.Head>
+                        <Table.Head class="w-[100px]">Actions</Table.Head>
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -65,6 +88,34 @@
                         <Table.Row>
                             <Table.Cell>{item.description}</Table.Cell>
                             <Table.Cell>{item.category.name}</Table.Cell>
+                            <Table.Cell>
+                                <AlertDialog.Root>
+                                    <AlertDialog.Trigger asChild let:builder>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon"
+                                            builders={[builder]}
+                                            on:click={() => itemToDelete = item.id}
+                                        >
+                                            <Trash2 class="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialog.Trigger>
+                                    <AlertDialog.Content>
+                                        <AlertDialog.Header>
+                                            <AlertDialog.Title>Are you sure?</AlertDialog.Title>
+                                            <AlertDialog.Description>
+                                                This action cannot be undone. This will permanently delete the gallery item.
+                                            </AlertDialog.Description>
+                                        </AlertDialog.Header>
+                                        <AlertDialog.Footer>
+                                            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+                                            <AlertDialog.Action on:click={handleDelete}>
+                                                Delete
+                                            </AlertDialog.Action>
+                                        </AlertDialog.Footer>
+                                    </AlertDialog.Content>
+                                </AlertDialog.Root>
+                            </Table.Cell>
                         </Table.Row>
                     {/each}
                 </Table.Body>
