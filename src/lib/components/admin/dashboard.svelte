@@ -4,7 +4,7 @@
     import { Button } from '$lib/components/ui/button';
     import { enhance } from '$app/forms';
     import { Input } from "$lib/components/ui/input";
-    import { Trash2 } from 'lucide-svelte';
+    import { Trash2, ChevronLeft, ChevronRight } from 'lucide-svelte';
     import * as AlertDialog from "$lib/components/ui/alert-dialog";
     import * as Dialog from "$lib/components/ui/dialog";
     import { Label } from "$lib/components/ui/label";
@@ -43,6 +43,10 @@
     let itemToDelete = $state<number | null>(null);
     let categoryToDelete = $state<number | null>(null);
     
+    // Pagination state
+    let currentPage = $state(0);
+    let itemsPerPage = 10;
+    
     // Dialog states
     let showAddDialog = $state(false);
     let showAddCategoryDialog = $state(false);
@@ -76,6 +80,30 @@
             (item.category?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
         )
     );
+
+    // Pagination computed values
+    let totalPages = $derived(Math.ceil(filteredItems.length / itemsPerPage));
+    let paginatedItems = $derived(
+        filteredItems.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+    );
+
+    // Pagination functions
+    function goToPreviousPage() {
+        if (currentPage > 0) {
+            currentPage--;
+        }
+    }
+
+    function goToNextPage() {
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+        }
+    }
+
+    // Reset to first page when search term changes
+    $effect(() => {
+        currentPage = 0;
+    });
 
     // Dialog handlers
     function closeDialog() {
@@ -210,46 +238,48 @@
         </div>
     </Card.Content>
     <Card.Footer>
-        <Dialog.Root bind:open={showAddCategoryDialog}>
-            <Dialog.Trigger asChild let:builder>
-                <Button builders={[builder]}>Add Category</Button>
-            </Dialog.Trigger>
-            <Dialog.Content>
-                <Dialog.Header>
-                    <Dialog.Title>Add New Category</Dialog.Title>
-                    <Dialog.Description>
-                        Add a new category to your gallery.
-                    </Dialog.Description>
-                </Dialog.Header>
-                <form class="grid gap-4 py-4" method="post" action="?/addCategory" use:enhance={() => {
-                    return async ({ result, update }) => {
-                        if (result.type === 'success') {
-                            await update();
-                            closeCategoryDialog();
-                        }
-                    };
-                }}>
-                    <div class="grid gap-2">
-                        <Label for="category-name">Name</Label>
-                        <Input 
-                            id="category-name"
-                            name="name"
-                            bind:value={newCategory.name}
-                            placeholder="Enter category name"
-                            required
-                        />
-                    </div>
-                    <Dialog.Footer>
-                        <Button type="button" variant="outline" on:click={closeCategoryDialog}>
-                            Cancel
-                        </Button>
-                        <Button type="submit">
-                            Add Category
-                        </Button>
-                    </Dialog.Footer>
-                </form>
-            </Dialog.Content>
-        </Dialog.Root>
+        <div class="flex justify-end w-full">
+            <Dialog.Root bind:open={showAddCategoryDialog}>
+                <Dialog.Trigger asChild let:builder>
+                    <Button builders={[builder]}>Add Category</Button>
+                </Dialog.Trigger>
+                <Dialog.Content>
+                    <Dialog.Header>
+                        <Dialog.Title>Add New Category</Dialog.Title>
+                        <Dialog.Description>
+                            Add a new category to your gallery.
+                        </Dialog.Description>
+                    </Dialog.Header>
+                    <form class="grid gap-4 py-4" method="post" action="?/addCategory" use:enhance={() => {
+                        return async ({ result, update }) => {
+                            if (result.type === 'success') {
+                                await update();
+                                closeCategoryDialog();
+                            }
+                        };
+                    }}>
+                        <div class="grid gap-2">
+                            <Label for="category-name">Name</Label>
+                            <Input 
+                                id="category-name"
+                                name="name"
+                                bind:value={newCategory.name}
+                                placeholder="Enter category name"
+                                required
+                            />
+                        </div>
+                        <Dialog.Footer>
+                            <Button type="button" variant="outline" on:click={closeCategoryDialog}>
+                                Cancel
+                            </Button>
+                            <Button type="submit">
+                                Add Category
+                            </Button>
+                        </Dialog.Footer>
+                    </form>
+                </Dialog.Content>
+            </Dialog.Root>
+        </div>
     </Card.Footer>
 </Card.Root>
 
@@ -276,7 +306,7 @@
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {#each filteredItems as item (item.id)}
+                    {#each paginatedItems as item (item.id)}
                         <Table.Row>
                             <Table.Cell>{item.description}</Table.Cell>
                             <Table.Cell>{item.category?.name || 'No Category'}</Table.Cell>
@@ -315,84 +345,109 @@
         </div>
     </Card.Content>
     <Card.Footer>
-        <Dialog.Root bind:open={showAddDialog}>
-            <Dialog.Trigger asChild let:builder>
-                <Button builders={[builder]}>Add Image</Button>
-            </Dialog.Trigger>
-            <Dialog.Content>
-                <Dialog.Header>
-                    <Dialog.Title>Add New Image</Dialog.Title>
-                    <Dialog.Description>
-                        Add a new image to your gallery.
-                    </Dialog.Description>
-                </Dialog.Header>
-                <form class="grid gap-4 py-4" method="post" action="?/addItem" use:enhance={() => {
-                    return async ({ result, update }) => {
-                        if (result.type === 'success') {
-                            await update();
-                            closeDialog();
-                        }
-                    };
-                }}>
-                    <div class="grid gap-2">
-                        <Label for="gallery-description">Description</Label>
-                        <Input 
-                            id="gallery-description"
-                            name="description"
-                            bind:value={newItem.description}
-                            placeholder="Enter image description"
-                            required
-                        />
-                    </div>
-                    <div class="grid gap-2">
-                        <Label for="gallery-category-select">Category</Label>
-                        <div 
-                            id="gallery-category-select" 
-                            role="combobox" 
-                            aria-label="Select a category" 
-                            aria-controls="category-list" 
-                            aria-expanded={showAddDialog}
-                        >
-                            <Select 
-                                name="category"
-                                selected={newItem.categoryId ? { value: categoriesState.find((c: Category) => c.id === parseInt(newItem.categoryId)) } : undefined} 
-                                onSelectedChange={handleCategorySelect}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                                <SelectContent id="category-list">
-                                    {#each categoriesState as category}
-                                        <SelectItem value={category}>
-                                            {category.name}
-                                        </SelectItem>
-                                    {/each}
-                                </SelectContent>
-                            </Select>
+        <div class="flex items-center justify-between w-full">
+            <Dialog.Root bind:open={showAddDialog}>
+                <Dialog.Trigger asChild let:builder>
+                    <Button builders={[builder]}>Add Image</Button>
+                </Dialog.Trigger>
+                <Dialog.Content>
+                    <Dialog.Header>
+                        <Dialog.Title>Add New Image</Dialog.Title>
+                        <Dialog.Description>
+                            Add a new image to your gallery.
+                        </Dialog.Description>
+                    </Dialog.Header>
+                    <form class="grid gap-4 py-4" method="post" action="?/addItem" use:enhance={() => {
+                        return async ({ result, update }) => {
+                            if (result.type === 'success') {
+                                await update();
+                                closeDialog();
+                            }
+                        };
+                    }}>
+                        <div class="grid gap-2">
+                            <Label for="gallery-description">Description</Label>
+                            <Input 
+                                id="gallery-description"
+                                name="description"
+                                bind:value={newItem.description}
+                                placeholder="Enter image description"
+                                required
+                            />
                         </div>
-                        <!-- Hidden input for form submission -->
-                        <input type="hidden" name="categoryId" bind:value={newItem.categoryId} />
-                    </div>
-                    <div class="grid gap-2">
-                        <Label for="gallery-image-url">Image URL</Label>
-                        <Input 
-                            id="gallery-image-url"
-                            name="imageUrl"
-                            bind:value={newItem.imageUrl}
-                            placeholder="Enter image URL"
-                            required
-                        />
-                    </div>
-                    <Dialog.Footer>
-                        <Button type="button" variant="outline" on:click={closeDialog}>
-                            Cancel
-                        </Button>
-                        <Button type="submit">
-                            Add Image
-                        </Button>
-                    </Dialog.Footer>
-                </form>
-            </Dialog.Content>
-        </Dialog.Root>
+                        <div class="grid gap-2">
+                            <Label for="gallery-category-select">Category</Label>
+                            <div 
+                                id="gallery-category-select" 
+                                role="combobox" 
+                                aria-label="Select a category" 
+                                aria-controls="category-list" 
+                                aria-expanded={showAddDialog}
+                            >
+                                <Select 
+                                    name="category"
+                                    selected={newItem.categoryId ? { value: categoriesState.find((c: Category) => c.id === parseInt(newItem.categoryId)) } : undefined} 
+                                    onSelectedChange={handleCategorySelect}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a category" />
+                                    </SelectTrigger>
+                                    <SelectContent id="category-list">
+                                        {#each categoriesState as category}
+                                            <SelectItem value={category}>
+                                                {category.name}
+                                            </SelectItem>
+                                        {/each}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <!-- Hidden input for form submission -->
+                            <input type="hidden" name="categoryId" bind:value={newItem.categoryId} />
+                        </div>
+                        <div class="grid gap-2">
+                            <Label for="gallery-image-url">Image URL</Label>
+                            <Input 
+                                id="gallery-image-url"
+                                name="imageUrl"
+                                bind:value={newItem.imageUrl}
+                                placeholder="Enter image URL"
+                                required
+                            />
+                        </div>
+                        <Dialog.Footer>
+                            <Button type="button" variant="outline" on:click={closeDialog}>
+                                Cancel
+                            </Button>
+                            <Button type="submit">
+                                Add Image
+                            </Button>
+                        </Dialog.Footer>
+                    </form>
+                </Dialog.Content>
+            </Dialog.Root>
+            <div class="flex items-center gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm"
+                    on:click={goToPreviousPage}
+                    disabled={currentPage === 0}
+                >
+                    <ChevronLeft class="h-4 w-4" />
+                    Previous
+                </Button>
+                <span class="text-sm text-muted-foreground">
+                    Page {currentPage + 1} of {totalPages || 1}
+                </span>
+                <Button 
+                    variant="outline" 
+                    size="sm"
+                    on:click={goToNextPage}
+                    disabled={currentPage >= totalPages - 1}
+                >
+                    Next
+                    <ChevronRight class="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
     </Card.Footer>
 </Card.Root> 
