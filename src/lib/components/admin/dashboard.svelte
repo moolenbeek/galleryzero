@@ -268,7 +268,7 @@
                                 required
                             />
                         </div>
-                        <Dialog.Footer>
+                        <Dialog.Footer class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
                             <Button type="button" variant="outline" on:click={closeCategoryDialog}>
                                 Cancel
                             </Button>
@@ -414,7 +414,7 @@
                                 required
                             />
                         </div>
-                        <Dialog.Footer>
+                        <Dialog.Footer class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
                             <Button type="button" variant="outline" on:click={closeDialog}>
                                 Cancel
                             </Button>
@@ -431,11 +431,12 @@
                     size="sm"
                     on:click={goToPreviousPage}
                     disabled={currentPage === 0}
+                    class="flex items-center gap-1"
                 >
                     <ChevronLeft class="h-4 w-4" />
-                    Previous
+                    <span class="hidden sm:inline">Previous</span>
                 </Button>
-                <span class="text-sm text-muted-foreground">
+                <span class="text-sm text-muted-foreground px-2 sm:px-3 whitespace-nowrap">
                     Page {currentPage + 1} of {totalPages || 1}
                 </span>
                 <Button 
@@ -443,8 +444,9 @@
                     size="sm"
                     on:click={goToNextPage}
                     disabled={currentPage >= totalPages - 1}
+                    class="flex items-center gap-1"
                 >
-                    Next
+                    <span class="hidden sm:inline">Next</span>
                     <ChevronRight class="h-4 w-4" />
                 </Button>
             </div>
