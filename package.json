@@ -26,6 +26,7 @@
 		"clsx": "^2.1.1",
 		"drizzle-kit": "^0.30.2",
 		"formsnap": "^1.0.1",
+		"lucide-svelte": "^0.511.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.10",
@@ -44,7 +45,6 @@
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"drizzle-orm": "^0.40.0",
-		"lucide-svelte": "^0.511.0",
 		"postgres": "^3.4.5"
 	}
 }

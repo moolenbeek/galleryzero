@@ -22,7 +22,7 @@ export const gallery_category = pgTable('gallery_category', {
 
 export const gallery_item = pgTable('gallery_item', {
 	id: serial('id').primaryKey(),
-	categoryId: text('category_id').references(() => gallery_category.id),
+	categoryId: integer('category_id').references(() => gallery_category.id),
 	imageUrl: text('image_url').notNull(),
 	description: text('description').notNull(),
 });
