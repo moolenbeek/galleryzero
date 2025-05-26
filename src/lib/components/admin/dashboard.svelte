@@ -194,7 +194,6 @@
                 <Table.Header>
                     <Table.Row>
                         <Table.Head>Name</Table.Head>
-                        <Table.Head>Slug</Table.Head>
                         <Table.Head class="w-[100px]">Actions</Table.Head>
                     </Table.Row>
                 </Table.Header>
@@ -202,7 +201,6 @@
                     {#each categoriesState as category}
                         <Table.Row>
                             <Table.Cell>{category.name}</Table.Cell>
-                            <Table.Cell>{category.slug}</Table.Cell>
                             <Table.Cell>
                                 <AlertDialog.Root>
                                     <AlertDialog.Trigger asChild let:builder>
@@ -238,7 +236,7 @@
         </div>
     </Card.Content>
     <Card.Footer>
-        <div class="flex justify-end w-full">
+        <div class="flex justify-start w-full">
             <Dialog.Root bind:open={showAddCategoryDialog}>
                 <Dialog.Trigger asChild let:builder>
                     <Button builders={[builder]}>Add Category</Button>
