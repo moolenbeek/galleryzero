@@ -9,6 +9,7 @@
     import * as Dialog from "$lib/components/ui/dialog";
     import { Label } from "$lib/components/ui/label";
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
+    import { CldUploadWidget } from 'svelte-cloudinary';
 
     interface GalleryItem {
         id: number;
@@ -403,14 +404,29 @@
                             <input type="hidden" name="categoryId" bind:value={newItem.categoryId} />
                         </div>
                         <div class="grid gap-2">
-                            <Label for="gallery-image-url">Image URL</Label>
-                            <Input 
-                                id="gallery-image-url"
-                                name="imageUrl"
-                                bind:value={newItem.imageUrl}
-                                placeholder="Enter image URL"
-                                required
-                            />
+                            <Label for="gallery-image-url">Image</Label>
+                            <CldUploadWidget
+                                uploadPreset={import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET}
+                                onUpload={(result, widget) => {
+                                    if (result.event === "success" && result.info && typeof result.info !== 'string') {
+                                        newItem.imageUrl = result.info.secure_url;
+                                        widget.close();
+                                    }
+                                }}
+                                let:open
+                            >
+                                <Button type="button" on:click={() => open()} variant="outline" class="w-full">
+                                    {newItem.imageUrl ? 'Change Image' : 'Upload Image'}
+                                </Button>
+                            </CldUploadWidget>
+                            {#if newItem.imageUrl}
+                                <div class="mt-2">
+                                    <img src={newItem.imageUrl} alt="Preview" class="w-full h-32 object-cover rounded-md border" />
+                                    <p class="text-sm text-muted-foreground mt-1 break-all">{newItem.imageUrl}</p>
+                                </div>
+                            {/if}
+                            <!-- Hidden input for form submission -->
+                            <input type="hidden" name="imageUrl" bind:value={newItem.imageUrl} required />
                         </div>
                         <Dialog.Footer class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
                             <Button type="button" variant="outline" on:click={closeDialog}>
