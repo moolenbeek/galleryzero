@@ -28,22 +28,31 @@
     // State management
     let searchTerm = $state('');
     let selectedCategoryId = $state<number | null>(null);
+    let sortOrder = $state<'newest' | 'oldest'>('newest');
     let isLoading = $state(true);
     
     // Ensure data is available before filtering
     let galleryItems = $derived(data?.galleryItems || []);
     let categories = $derived(data?.categories || []);
     
-    // Computed values for filtering
+    // Computed values for filtering and sorting
     let filteredItems = $derived(
-        galleryItems.filter((item: GalleryItem) => {
-            const matchesSearch = (item.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                                (item.category?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-            
-            const matchesCategory = selectedCategoryId === null || item.categoryId === selectedCategoryId;
-            
-            return matchesSearch && matchesCategory;
-        })
+        galleryItems
+            .filter((item: GalleryItem) => {
+                const matchesSearch = (item.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                                    (item.category?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                
+                const matchesCategory = selectedCategoryId === null || item.categoryId === selectedCategoryId;
+                
+                return matchesSearch && matchesCategory;
+            })
+            .sort((a, b) => {
+                if (sortOrder === 'newest') {
+                    return b.id - a.id; // Assuming higher ID means newer
+                } else {
+                    return a.id - b.id; // Lower ID means older
+                }
+            })
     );
 
     // Category filter handler
@@ -55,9 +64,17 @@
         }
     }
 
+    // Sort filter handler
+    function handleSortFilter(value: any) {
+        if (value?.value) {
+            sortOrder = value.value;
+        }
+    }
+
     function clearFilters() {
         searchTerm = '';
         selectedCategoryId = null;
+        sortOrder = 'newest';
     }
 
     onMount(() => {
@@ -81,7 +98,7 @@
     <!-- Filters -->
     <div class="mb-8 space-y-4 pt-4">
         <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div class="flex-1 max-w-sm">
+            <div class="w-full sm:w-96">
                 <Input
                     placeholder="Search images..."
                     type="text"
@@ -91,7 +108,7 @@
             
             <div class="w-full sm:w-auto min-w-[200px]">
                 <Select 
-                    selected={selectedCategoryId ? { value: categories.find((c: Category) => c.id === selectedCategoryId) } : undefined}
+                    selected={selectedCategoryId ? { value: categories.find((c: Category) => c.id === selectedCategoryId) } : { value: null }}
                     onSelectedChange={handleCategoryFilter}
                 >
                     <SelectTrigger>
@@ -108,7 +125,22 @@
                 </Select>
             </div>
 
-            {#if searchTerm || selectedCategoryId}
+            <div class="w-full sm:w-auto min-w-[200px]">
+                <Select 
+                    selected={{ value: sortOrder }}
+                    onSelectedChange={handleSortFilter}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="newest">Newest first</SelectItem>
+                        <SelectItem value="oldest">Oldest first</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {#if searchTerm || selectedCategoryId || sortOrder !== 'newest'}
                 <Button variant="outline" on:click={clearFilters}>
                     Clear filters
                 </Button>
