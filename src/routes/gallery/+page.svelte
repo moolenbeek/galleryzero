@@ -98,7 +98,7 @@
     <!-- Filters -->
     <div class="mb-8 space-y-4 pt-4">
         <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div class="w-full sm:w-96">
+            <div class="w-full flex-1 max-w-lg">
                 <Input
                     placeholder="Search images..."
                     type="text"
@@ -106,7 +106,7 @@
                 />
             </div>
             
-            <div class="w-full sm:w-auto min-w-[200px]">
+            <div class="w-full flex-1 min-w-[200px]">
                 <Select 
                     selected={selectedCategoryId ? { value: categories.find((c: Category) => c.id === selectedCategoryId) } : { value: null }}
                     onSelectedChange={handleCategoryFilter}
@@ -125,7 +125,7 @@
                 </Select>
             </div>
 
-            <div class="w-full sm:w-auto min-w-[200px]">
+            <div class="w-full flex-1 min-w-[200px]">
                 <Select 
                     selected={{ value: sortOrder }}
                     onSelectedChange={handleSortFilter}
@@ -141,7 +141,7 @@
             </div>
 
             {#if searchTerm || selectedCategoryId || sortOrder !== 'newest'}
-                <Button variant="outline" on:click={clearFilters}>
+                <Button variant="outline" on:click={clearFilters} class="w-full sm:w-auto">
                     Clear filters
                 </Button>
             {/if}
@@ -160,7 +160,7 @@
     {:else if filteredItems.length > 0}
         <div class="gallery-grid">
             {#each filteredItems as item (item.id)}
-                <Card.Root class="gallery-card">
+                <Card.Root class="overflow-hidden transition-shadow duration-200 hover:shadow-lg">
                     <div class="gallery-image-container">
                         <img 
                             src={item.imageUrl} 
@@ -240,17 +240,6 @@
         .gallery-grid {
             grid-template-columns: repeat(6, 1fr);
         }
-    }
-    
-    .gallery-card {
-        overflow: hidden;
-        transition: box-shadow 0.2s ease-in-out;
-        width: 100%;
-        height: fit-content;
-    }
-    
-    .gallery-card:hover {
-        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     }
     
     .gallery-image-container {
