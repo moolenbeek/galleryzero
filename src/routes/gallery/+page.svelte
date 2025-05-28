@@ -4,6 +4,7 @@
     import { Input } from "$lib/components/ui/input";
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
     import type { PageData } from './$types';
+    import { onMount } from 'svelte';
 
     interface GalleryItem {
         id: number;
@@ -27,6 +28,7 @@
     // State management
     let searchTerm = $state('');
     let selectedCategoryId = $state<number | null>(null);
+    let isLoading = $state(true);
     
     // Ensure data is available before filtering
     let galleryItems = $derived(data?.galleryItems || []);
@@ -57,6 +59,13 @@
         searchTerm = '';
         selectedCategoryId = null;
     }
+
+    onMount(() => {
+        // Simple delay for hydration
+        setTimeout(() => {
+            isLoading = false;
+        }, 200);
+    });
 </script>
 
 <svelte:head>
@@ -112,7 +121,11 @@
     </div>
 
     <!-- Gallery Grid -->
-    {#if filteredItems.length > 0}
+    {#if isLoading}
+        <div class="text-center py-12">
+            <div class="text-muted-foreground">Loading gallery...</div>
+        </div>
+    {:else if filteredItems.length > 0}
         <div class="gallery-grid">
             {#each filteredItems as item (item.id)}
                 <Card.Root class="gallery-card">
