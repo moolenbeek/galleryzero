@@ -299,6 +299,7 @@
             <Table.Root>
                 <Table.Header>
                     <Table.Row>
+                        <Table.Head>Image</Table.Head>
                         <Table.Head>Description</Table.Head>
                         <Table.Head>Category</Table.Head>
                         <Table.Head class="w-[100px]">Actions</Table.Head>
@@ -307,6 +308,14 @@
                 <Table.Body>
                     {#each paginatedItems as item (item.id)}
                         <Table.Row>
+                            <Table.Cell class="w-[80px]">
+                                <img 
+                                    src={item.imageUrl} 
+                                    alt={item.description || 'Gallery image'} 
+                                    class="w-16 h-16 object-cover rounded-md border"
+                                    loading="lazy"
+                                />
+                            </Table.Cell>
                             <Table.Cell>{item.description}</Table.Cell>
                             <Table.Cell>{item.category?.name || 'No Category'}</Table.Cell>
                             <Table.Cell>
