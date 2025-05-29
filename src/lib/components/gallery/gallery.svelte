@@ -3,6 +3,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Input } from "$lib/components/ui/input";
     import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
+    import * as Dialog from "$lib/components/ui/dialog";
     import { onMount } from 'svelte';
 
     interface GalleryItem {
@@ -34,6 +35,8 @@
     let selectedCategoryId = $state<number | null>(null);
     let sortOrder = $state<'newest' | 'oldest'>('newest');
     let isLoading = $state(true);
+    let selectedImage = $state<GalleryItem | null>(null);
+    let isModalOpen = $state(false);
     
     // Computed values for filtering and sorting
     let filteredItems = $derived(
@@ -75,6 +78,17 @@
         searchTerm = '';
         selectedCategoryId = null;
         sortOrder = 'newest';
+    }
+
+    // Modal handlers
+    function openImageModal(item: GalleryItem) {
+        selectedImage = item;
+        isModalOpen = true;
+    }
+
+    function closeImageModal() {
+        isModalOpen = false;
+        selectedImage = null;
     }
 
     onMount(() => {
@@ -131,7 +145,7 @@
         </div>
 
         {#if searchTerm || selectedCategoryId || sortOrder !== 'newest'}
-            <Button variant="outline" on:click={clearFilters} class="w-full sm:w-auto">
+            <Button variant="outline" onclick={clearFilters} class="w-full sm:w-auto">
                 Clear filters
             </Button>
         {/if}
@@ -151,14 +165,18 @@
     <div class="gallery-grid">
         {#each filteredItems as item (item.id)}
             <Card.Root class="overflow-hidden transition-shadow duration-200 hover:shadow-lg">
-                <div class="gallery-image-container">
+                <button 
+                    class="gallery-image-container cursor-pointer"
+                    onclick={() => openImageModal(item)}
+                    type="button"
+                >
                     <img 
                         src={item.imageUrl} 
                         alt={item.description}
                         class="gallery-image"
                         loading="lazy"
                     />
-                </div>
+                </button>
                 <Card.Content class="p-4 text-center">
                     <h3 class="font-medium text-sm mb-2 line-clamp-2">{item.description}</h3>
                     {#if item.category}
@@ -180,12 +198,49 @@
             {/if}
         </div>
         {#if searchTerm || selectedCategoryId}
-            <Button variant="outline" on:click={clearFilters}>
+            <Button variant="outline" onclick={clearFilters}>
                 Clear filters
             </Button>
         {/if}
     </div>
 {/if}
+
+<!-- Image Modal -->
+<Dialog.Root bind:open={isModalOpen}>
+    <Dialog.Content class="max-w-4xl w-full max-h-[90vh] p-0">
+        {#if selectedImage}
+            <div class="relative">
+                <Dialog.Header class="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm p-4">
+                    <Dialog.Title class="text-lg font-semibold">
+                        {selectedImage.description}
+                    </Dialog.Title>
+                    {#if selectedImage.category}
+                        <Dialog.Description class="text-sm text-muted-foreground">
+                            Category: {selectedImage.category.name}
+                        </Dialog.Description>
+                    {/if}
+                </Dialog.Header>
+                
+                <div class="flex items-center justify-center bg-black/5">
+                    <img 
+                        src={selectedImage.imageUrl} 
+                        alt={selectedImage.description}
+                        class="max-w-full max-h-[80vh] object-contain"
+                    />
+                </div>
+                
+                <Dialog.Close class="absolute top-4 right-4 z-20">
+                    <Button variant="secondary" size="sm" class="h-8 w-8 p-0">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </Button>
+                </Dialog.Close>
+            </div>
+        {/if}
+    </Dialog.Content>
+</Dialog.Root>
 
 <style>
     .line-clamp-2 {
@@ -235,6 +290,15 @@
         aspect-ratio: 1 / 1;
         overflow: hidden;
         width: 100%;
+        border: none;
+        background: none;
+        padding: 0;
+        display: block;
+    }
+    
+    .gallery-image-container:focus {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
     }
     
     .gallery-image {
