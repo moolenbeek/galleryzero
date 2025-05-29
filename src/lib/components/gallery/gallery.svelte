@@ -209,34 +209,27 @@
 <Dialog.Root bind:open={isModalOpen}>
     <Dialog.Content class="max-w-4xl w-full max-h-[90vh] p-0">
         {#if selectedImage}
-            <div class="relative">
-                <Dialog.Header class="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm p-4">
-                    <Dialog.Title class="text-lg font-semibold">
-                        {selectedImage.description}
-                    </Dialog.Title>
-                    {#if selectedImage.category}
-                        <Dialog.Description class="text-sm text-muted-foreground">
-                            Category: {selectedImage.category.name}
-                        </Dialog.Description>
-                    {/if}
+            <div class="flex flex-col h-full">
+                <Dialog.Header class="p-4 border-b bg-background">
+                    <div>
+                        <Dialog.Title class="text-lg font-semibold">
+                            {selectedImage.description}
+                        </Dialog.Title>
+                        {#if selectedImage.category}
+                            <Dialog.Description class="text-sm text-muted-foreground mt-1">
+                                Category: {selectedImage.category.name}
+                            </Dialog.Description>
+                        {/if}
+                    </div>
                 </Dialog.Header>
                 
-                <div class="flex items-center justify-center bg-black/5">
+                <div class="flex items-center justify-center bg-black/5 flex-1 p-4">
                     <img 
                         src={selectedImage.imageUrl} 
                         alt={selectedImage.description}
-                        class="max-w-full max-h-[80vh] object-contain"
+                        class="max-w-full max-h-full object-contain"
                     />
                 </div>
-                
-                <Dialog.Close class="absolute top-4 right-4 z-20">
-                    <Button variant="secondary" size="sm" class="h-8 w-8 p-0">
-                        <span class="sr-only">Close</span>
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </Button>
-                </Dialog.Close>
             </div>
         {/if}
     </Dialog.Content>
