@@ -54,6 +54,10 @@
     let showAddDialog = $state(false);
     let showAddCategoryDialog = $state(false);
     
+    // Hover preview state
+    let hoveredImage = $state<string | null>(null);
+    let mousePosition = $state({ x: 0, y: 0 });
+    
     // Form states
     let newItem = $state({
         description: '',
@@ -161,6 +165,20 @@
         searchTerm = '';
         selectedCategoryId = null;
         sortOrder = 'newest';
+    }
+
+    // Hover preview handlers
+    function handleImageHover(imageUrl: string, event: MouseEvent) {
+        hoveredImage = imageUrl;
+        updateMousePosition(event);
+    }
+
+    function handleImageLeave() {
+        hoveredImage = null;
+    }
+
+    function updateMousePosition(event: MouseEvent) {
+        mousePosition = { x: event.clientX, y: event.clientY };
     }
 
     async function handleDeleteCategory() {
@@ -396,8 +414,11 @@
                                 <img 
                                     src={item.imageUrl} 
                                     alt={item.description || 'Gallery image'} 
-                                    class="w-16 h-16 object-cover rounded-md border"
+                                    class="w-16 h-16 object-cover rounded-md border cursor-pointer"
                                     loading="lazy"
+                                    onmouseenter={(event) => handleImageHover(item.imageUrl, event)}
+                                    onmouseleave={handleImageLeave}
+                                    onmousemove={updateMousePosition}
                                 />
                             </Table.Cell>
                             <Table.Cell>{item.description}</Table.Cell>
@@ -560,3 +581,18 @@
         </div>
     </Card.Footer>
 </Card.Root> 
+
+<!-- Hover Preview -->
+{#if hoveredImage}
+    <div 
+        class="fixed pointer-events-none z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2"
+        style="left: {mousePosition.x + 10}px; top: {mousePosition.y - 150}px;"
+    >
+        <img 
+            src={hoveredImage} 
+            alt="Preview" 
+            class="w-64 h-48 object-cover rounded-md"
+            loading="lazy"
+        />
+    </div>
+{/if} 
