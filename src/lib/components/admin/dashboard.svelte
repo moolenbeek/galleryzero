@@ -41,6 +41,8 @@
     let galleryItemsState = $state<GalleryItem[]>([]);
     let categoriesState = $state<Category[]>([]);
     let searchTerm = $state('');
+    let selectedCategoryId = $state<number | null>(null);
+    let sortOrder = $state<'newest' | 'oldest'>('newest');
     let itemToDelete = $state<number | null>(null);
     let categoryToDelete = $state<number | null>(null);
     
@@ -76,10 +78,22 @@
 
     // Computed values
     let filteredItems = $derived(
-        galleryItemsState.filter((item: GalleryItem) => 
-            (item.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (item.category?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-        )
+        galleryItemsState
+            .filter((item: GalleryItem) => {
+                const matchesSearch = (item.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                                    (item.category?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+                
+                const matchesCategory = selectedCategoryId === null || item.categoryId === selectedCategoryId;
+                
+                return matchesSearch && matchesCategory;
+            })
+            .sort((a, b) => {
+                if (sortOrder === 'newest') {
+                    return b.id - a.id; // Assuming higher ID means newer
+                } else {
+                    return a.id - b.id; // Lower ID means older
+                }
+            })
     );
 
     // Pagination computed values
@@ -126,6 +140,27 @@
         } else {
             newItem.categoryId = '';
         }
+    }
+
+    // Filter handlers
+    function handleCategoryFilter(value: any) {
+        if (value?.value?.id) {
+            selectedCategoryId = value.value.id;
+        } else {
+            selectedCategoryId = null;
+        }
+    }
+
+    function handleSortFilter(value: any) {
+        if (value?.value) {
+            sortOrder = value.value;
+        }
+    }
+
+    function clearFilters() {
+        searchTerm = '';
+        selectedCategoryId = null;
+        sortOrder = 'newest';
     }
 
     async function handleDeleteCategory() {
@@ -287,14 +322,63 @@
         <Card.Title>Gallery</Card.Title>
     </Card.Header>
     <Card.Content>
-        <div class="flex items-center py-4">
-            <Input
-                class="max-w-sm"
-                placeholder="Filter items..."
-                type="text"
-                bind:value={searchTerm}
-            />
+        <!-- Filters -->
+        <div class="mb-6 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div class="w-full flex-1 max-w-lg">
+                    <Input
+                        placeholder="Search images..."
+                        type="text"
+                        bind:value={searchTerm}
+                    />
+                </div>
+                
+                <div class="w-full flex-1 min-w-[200px]">
+                    <Select 
+                        selected={selectedCategoryId ? { value: categoriesState.find((c: Category) => c.id === selectedCategoryId) } : { value: null }}
+                        onSelectedChange={handleCategoryFilter}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="All categories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={null}>All categories</SelectItem>
+                            {#each categoriesState as category}
+                                <SelectItem value={category}>
+                                    {category.name}
+                                </SelectItem>
+                            {/each}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div class="w-full flex-1 min-w-[200px]">
+                    <Select 
+                        selected={{ value: sortOrder }}
+                        onSelectedChange={handleSortFilter}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="newest">Newest first</SelectItem>
+                            <SelectItem value="oldest">Oldest first</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {#if searchTerm || selectedCategoryId || sortOrder !== 'newest'}
+                    <Button variant="outline" on:click={clearFilters} class="w-full sm:w-auto">
+                        Clear filters
+                    </Button>
+                {/if}
+            </div>
+            
+            <div class="text-sm text-muted-foreground">
+                Showing {filteredItems.length} of {galleryItemsState.length} images
+            </div>
         </div>
+
         <div class="rounded-md border">
             <Table.Root>
                 <Table.Header>
