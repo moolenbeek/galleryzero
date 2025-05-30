@@ -5,4 +5,6 @@
 	export let data: PageData;
 </script>
 
-<Dashboard {...data} />
+<div class="p-4">
+	<Dashboard {...data} />
+</div>

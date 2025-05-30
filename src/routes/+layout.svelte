@@ -5,6 +5,5 @@
 </script>
 
 <Navigation />
-<div class="p-4">
-	{@render children()}
-</div>
+
+{@render children()}
