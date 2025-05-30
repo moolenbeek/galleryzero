@@ -5,6 +5,7 @@ import { db } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 import { gallery_item, gallery_category } from '$lib/server/db/schema.js';
 import { desc } from 'drizzle-orm';
+import { deleteCloudinaryImage } from '$lib/server/cloudinary';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -60,9 +61,45 @@ export const actions: Actions = {
 		if (!id) return fail(400, { error: 'ID is required' });
 
 		try {
+			// First, get the item to retrieve the image URL
+			const item = await db.query.gallery_item.findFirst({
+				where: eq(gallery_item.id, Number(id))
+			});
+
+			if (!item) {
+				return fail(404, { error: 'Item not found' });
+			}
+
+			// Attempt to delete the image from Cloudinary (if configured)
+			let cloudinaryResult: { deleted: boolean; reason?: string } = { deleted: false, reason: 'No image URL' };
+			if (item.imageUrl) {
+				try {
+					cloudinaryResult = await deleteCloudinaryImage(item.imageUrl);
+					if (cloudinaryResult.deleted) {
+						console.log('✅ Image successfully deleted from Cloudinary');
+					} else {
+						console.log('ℹ️  Cloudinary deletion skipped:', cloudinaryResult.reason || 'Unknown reason');
+					}
+				} catch (cloudinaryError) {
+					console.error('❌ Failed to delete image from Cloudinary:', cloudinaryError);
+					cloudinaryResult = { deleted: false, reason: 'Cloudinary deletion failed' };
+					// Continue with database deletion even if Cloudinary deletion fails
+				}
+			}
+
+			// Delete from database
 			await db.delete(gallery_item).where(eq(gallery_item.id, Number(id)));
-			return { success: true };
+			console.log('✅ Item successfully deleted from database');
+			
+			return { 
+				success: true,
+				cloudinaryDeleted: cloudinaryResult.deleted,
+				message: cloudinaryResult.deleted 
+					? 'Item and image deleted successfully' 
+					: `Item deleted from database (Cloudinary deletion skipped: ${cloudinaryResult.reason || 'Unknown reason'})`
+			};
 		} catch (error) {
+			console.error('❌ Error deleting item:', error);
 			return fail(500, { error: 'Failed to delete item' });
 		}
 	},
